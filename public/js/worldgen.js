@@ -26,8 +26,7 @@ WorldGenerator.fillCircle = function(world, px, py, radius, tile, mask) {
 	}
 }
 
-WorldGenerator.fillChunk = function(world, x, y, tile) {
-	let chunk = world.getOrCreateChunk(x, y);
+WorldGenerator.fillChunk = function(chunk, tile) {
 	for (let i = 0; i < 256; i++) {
 		chunk.tiles[i] = tile;
 	}
@@ -41,7 +40,9 @@ WorldGenerator.generateWorld = function(world) {
 	
 	for (let x = 0; x < world.size; x++) {
 		for (let y = 0; y < world.size; y++) {
-			WorldGenerator.fillChunk(world, x, y, Tiles.water);
+			let chunk = world.getOrCreateChunk(x, y);
+			WorldGenerator.fillChunk(chunk, Tiles.water);
+			chunk.objects = [];
 		}
 	}
 	
@@ -71,7 +72,7 @@ WorldGenerator.generateWorld = function(world) {
 		let angle = Math.random() * 6.283;
 		let px = Math.floor(Math.sin(angle) * radius + half);
 		let py = Math.floor(Math.cos(angle) * radius + half);
-		let radius2 = Math.random() * 1.7 + 0.6;
+		let radius2 = Math.random() * 1.7 + 1.6;
 		WorldGenerator.fillCircle(world, px, py, radius2, Tiles.grass);
 	}
 	
@@ -79,8 +80,18 @@ WorldGenerator.generateWorld = function(world) {
 	
 	for (let x = 0; x < size; x ++) {
 		for (let y = 0; y < size; y ++) {
-			if (world.getTile(x, y) == Tiles.grass && WorldGenerator.isNear(world, x, y, Tiles.water)) {
+			let tile = world.getTile(x, y);
+			if (tile == Tiles.grass && WorldGenerator.isNear(world, x, y, Tiles.water)) {
 				WorldGenerator.fillCircle(world, x, y, 1, Tiles.sand, Tiles.grass);
+			}
+		}
+	}
+	
+	for (let x = 0; x < size; x ++) {
+		for (let y = 0; y < size; y ++) {
+			let tile = world.getTile(x, y);
+			if (tile == Tiles.grass && Math.random() < 0.3) {
+				world.setObject(x, y, GameObjects.tallGrass);
 			}
 		}
 	}

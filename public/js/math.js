@@ -159,3 +159,7 @@ MathHelper.lerp = function(a, b, delta) {
 MathHelper.clamp = function(x, min, max) {
 	return x < min ? min : x > max ? max : x;
 }
+
+MathHelper.randomCentered = function() {
+	return Math.random() * 2.0 - 1.0;
+}

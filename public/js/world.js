@@ -1,6 +1,7 @@
 class Chunk {
 	constructor(x, y) {
 		this.tiles = [];
+		this.objects = [];
 		this.blockPosition = new Vec2(x << 4, y << 4);
 		this.renderPosition = new Vec2(x << 8, y << 8);
 		this.canvas = document.createElement("canvas");
@@ -19,6 +20,24 @@ class Chunk {
 	
 	setTile(x, y, tile) {
 		this.tiles[this.getIndex(x, y)] = tile;
+	}
+	
+	getObject(x, y) {
+		return this.objects[this.getIndex(x, y)];
+	}
+	
+	setObject(x, y, obj) {
+		this.objects[this.getIndex(x, y)] = obj;
+	}
+	
+	renderObjects(context) {
+		this.objects.forEach((obj, index) => {
+			let x = (index >> 4);
+			let y = (index & 15);
+		 	let px = this.blockPosition.x | x;
+			let py = this.blockPosition.y | y;
+			obj.render(context, px, py);
+		});
 	}
 	
 	update(world) {
@@ -61,6 +80,18 @@ class Chunk {
 			
 			tile = world.getTile(px, this.blockPosition.y + 16);
 			if (tile != undefined)tile.draw(world, ctx, i, 16, px, this.blockPosition.y + 16);
+		}
+		
+		for (let i = 0; i < 256; i++) {
+			let tile = this.tiles[i];
+			if (tile != undefined) {
+				let render = Tiles.overlayRender[tile.id];
+				if (render != undefined) {
+					let x = (i >> 4);
+					let y = (i & 15);
+					render(ctx, x, y);
+				}
+			}
 		}
 		
 		// Render.setAlpha(ctx, 0.2);
@@ -117,12 +148,40 @@ class World {
 		chunk.needUpdate = true;
 	}
 	
+	getObject(x, y) {
+		let cx = x >> 4;
+		let cy = y >> 4;
+		if (cx < 0 || cy < 0 || cx >= this.size || cy >= this.size) {
+			return undefined;
+		}
+		let index = this.getIndex(cx, cy);
+		let chunk = this.chunks[index];
+		if (chunk === undefined) {
+			return undefined;
+		}
+		return chunk.getObject(x & 15, y & 15);
+	}
+	
+	setObject(x, y, obj) {
+		let cx = x >> 4;
+		let cy = y >> 4;
+		if (cx < 0 || cy < 0 || cx >= this.size || cy >= this.size) {
+			return;
+		}
+		let chunk = this.getOrCreateChunk(cx, cy);
+		chunk.setObject(x & 15, y & 15, obj);
+	}
+	
 	render(context) {
 		this.chunks.forEach(chunk => {
 			if (chunk != undefined) {
 				if (chunk.needUpdate) chunk.update(this);
 				context.drawImage(chunk.canvas, chunk.renderPosition.x, chunk.renderPosition.y);
 			}
+		});
+		
+		this.chunks.forEach(chunk => {
+			if (chunk != undefined) chunk.renderObjects(context);
 		});
 	}
 }
