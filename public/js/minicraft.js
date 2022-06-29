@@ -12,15 +12,14 @@ Minicraft.initGame = function() {
 	ctx.context = canvas.getContext("2d");
 	ctx.center = new Vec2();
 	ctx.delta = 0.0;
-	ctx.zoom = 4.0;
 	
 	ctx.camera = {
 		position: new Vec2(),
 		movement: new Vec2(),
 		zoomDelta: 0.0,
-		zoomNext: 6.0,
-		zoomPrev: 6.0,
-		zoom: 6.0
+		zoomNext: 2.0,
+		zoomPrev: 2.0,
+		zoom: 2.0
 	};
 	
 	ctx.fps = {

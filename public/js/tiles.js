@@ -51,7 +51,12 @@ class WaterTile extends ImageTile {
 		let px = x << 4;
 		let py = y << 4;
 		if (worldY > 0 && world.getTile(worldX, worldY - 1) != this) {
-			this.drawPart(context, px, py, 16, 0);
+			let right = world.getTile(worldX + 1, worldY) == this;
+			let left = world.getTile(worldX - 1, worldY) == this;
+			if (right && left) this.drawPart(context, px, py, 16, 16);
+			else if (right) this.drawPart(context, px, py, 32, 0);
+			else if (left) this.drawPart(context, px, py, 0, 0);
+			else this.drawPart(context, px, py, 16, 0);
 		}
 		else {
 			this.drawPart(context, px, py, 0, 16);

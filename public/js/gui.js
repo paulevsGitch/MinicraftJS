@@ -141,6 +141,7 @@ class WorldScreen extends Screen {
 		this.world = new World(4);
 		WorldGenerator.generateWorld(this.world);
 		Minicraft.inWorld = true;
+		Minicraft.renderContext.camera.position.set(512, 512);
 	}
 	
 	render(renderContext) {
