@@ -194,7 +194,7 @@ class World {
 				let count = chunk.entities.length;
 				for (let i = 0; i < count; i++) {
 					let entity = chunk.entities[i];
-					entity.tick(delta);
+					entity.tick(this, delta);
 					entity.position.x = MathHelper.clamp(entity.position.x, 0.0, this.entityLimit);
 					entity.position.y = MathHelper.clamp(entity.position.y, 0.0, this.entityLimit);
 					let x = Math.floor(entity.position.x) >> 4;

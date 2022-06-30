@@ -111,6 +111,11 @@ class Vec2 {
 	}
 }
 
+const BoundingBoxData = {
+	enterTime: new Vec2(),
+	exitTime: new Vec2()
+}
+
 class BoundingBox {
 	constructor(position, size) {
 		this.position = position;
@@ -129,6 +134,66 @@ class BoundingBox {
 			relY = y - this.position.y;
 		}
 		return relX >= 0 && relY >= 0 && relX < this.size.x && relY < this.size.y;
+	}
+	
+	collides(box) {
+		return this.position.x < box.position.x + box.size.x &&
+			   this.position.x + this.size.x > box.position.x &&
+			   this.position.y < box.position.y + box.size.y &&
+			   this.size.y + this.position.y > box.position.y;
+	}
+	
+	sweptCollision(box, velocity) {
+		let enter = 0.0;
+		let exit = 0.0;
+		
+		if (velocity.x == 0) {
+			if (this.position.x < box.position.x + box.size.x && box.position.x < this.position.x + this.size.x) {
+				BoundingBoxData.enterTime.x = -1000.0;
+				BoundingBoxData.exitTime.x = 1000.0;
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			enter = velocity.x > 0 ? box.position.x - (this.size.x + this.position.x) : this.position.x - (box.size.x + box.position.x);
+			exit = velocity.x > 0 ? (box.size.x + box.position.x) - this.position.x : (this.size.x + this.position.x) - box.position.x;
+			BoundingBoxData.enterTime.x = enter / Math.abs(velocity.x);
+			BoundingBoxData.exitTime.x = exit / Math.abs(velocity.x);
+		}
+
+		if (velocity.y == 0) {
+			if (this.position.y < (box.size.y + box.position.y) && box.position.y < (this.size.y + this.position.y)) {
+				BoundingBoxData.enterTime.y = -1000.0;
+				BoundingBoxData.exitTime.y = 1000.0;
+			}
+			else {
+				return;
+			}
+		}
+		else {
+			enter = velocity.y > 0 ? box.position.y - (this.size.y + this.position.y) : this.position.y - (box.size.y + box.position.y);
+			exit = velocity.y > 0 ? (box.size.y + box.position.y) - this.position.y : (this.size.y + this.position.y) - box.position.y;
+			BoundingBoxData.enterTime.y = enter / Math.abs(velocity.y);
+			BoundingBoxData.exitTime.y = exit / Math.abs(velocity.y);
+		}
+
+		if (BoundingBoxData.enterTime.x > BoundingBoxData.exitTime.y || BoundingBoxData.enterTime.y > BoundingBoxData.exitTime.x) {
+			return;
+		}
+
+		enter = Math.max(BoundingBoxData.enterTime.x, BoundingBoxData.enterTime.y);
+		//console.log(enter);
+
+		if (enter < -100 || enter > 100) return;
+
+		if (enter == BoundingBoxData.enterTime.x) {
+			velocity.x = velocity.x * enter;
+		}
+		else {
+			velocity.y = velocity.y * enter;
+		}
 	}
 }
 
