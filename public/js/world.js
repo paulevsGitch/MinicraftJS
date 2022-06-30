@@ -2,6 +2,8 @@ class Chunk {
 	constructor(x, y) {
 		this.tiles = [];
 		this.objects = [];
+		this.entities = [];
+		this.position = new Vec2(x, y);
 		this.blockPosition = new Vec2(x << 4, y << 4);
 		this.renderPosition = new Vec2(x << 8, y << 8);
 		this.canvas = document.createElement("canvas");
@@ -28,6 +30,9 @@ class Chunk {
 	
 	setObject(x, y, obj) {
 		this.objects[this.getIndex(x, y)] = obj;
+		//let px = this.blockPosition.x | x;
+		//let py = this.blockPosition.y | y;
+		//obj.position = new Vec2(px, py);
 	}
 	
 	renderObjects(context) {
@@ -38,6 +43,7 @@ class Chunk {
 			let py = this.blockPosition.y | y;
 			obj.render(context, px, py);
 		});
+		this.entities.forEach(entity => entity.render(context));
 	}
 	
 	update(world) {
@@ -94,19 +100,23 @@ class Chunk {
 			}
 		}
 		
-		// Render.setAlpha(ctx, 0.2);
-		// ctx.strokeStyle = "#ffff00";
-		// ctx.beginPath();
-		// ctx.rect(0.5, 0.5, 255, 255);
-		// ctx.stroke();
-		// Render.setAlpha(ctx, 1.0);
+		Render.setAlpha(ctx, 0.2);
+		ctx.strokeStyle = "#ffff00";
+		ctx.beginPath();
+		ctx.rect(0.5, 0.5, 255, 255);
+		ctx.stroke();
+		Render.setAlpha(ctx, 1.0);
 	}
 }
 
 class World {
 	constructor(size) {
+		this.blockSize = size << 4;
+		this.entityLimit = this.blockSize - 0.001;
 		this.size = size;
 		this.chunks = [];
+		this.renderObjects = new List();
+		this.comparator = (obj1, obj2) => obj1.position.y - obj2.position.y;
 	}
 	
 	getIndex(x, y) {
@@ -172,16 +182,52 @@ class World {
 		chunk.setObject(x & 15, y & 15, obj);
 	}
 	
+	addEntity(entity) {
+		let x = Math.floor(entity.position.x) >> 4;
+		let y = Math.floor(entity.position.y) >> 4;
+		this.chunks[this.getIndex(x, y)].entities.push(entity);
+	}
+	
+	tick(delta) {
+		this.chunks.forEach(chunk => {
+			if (chunk != undefined) {
+				let count = chunk.entities.length;
+				for (let i = 0; i < count; i++) {
+					let entity = chunk.entities[i];
+					entity.tick(delta);
+					entity.position.x = MathHelper.clamp(entity.position.x, 0.0, this.entityLimit);
+					entity.position.y = MathHelper.clamp(entity.position.y, 0.0, this.entityLimit);
+					let x = Math.floor(entity.position.x) >> 4;
+					let y = Math.floor(entity.position.y) >> 4;
+					if (x != chunk.position.x || y != chunk.position.y) {
+						this.chunks[this.getIndex(x, y)].entities.push(entity);
+						chunk.entities.splice(i, 1);
+						count--;
+						i--; 
+					}
+				}
+			}
+		});
+	}
+	
 	render(context) {
+		//this.renderObjects.clear();
+		
 		this.chunks.forEach(chunk => {
 			if (chunk != undefined) {
 				if (chunk.needUpdate) chunk.update(this);
 				context.drawImage(chunk.canvas, chunk.renderPosition.x, chunk.renderPosition.y);
+				//this.renderObjects.add(chunk.objects);
 			}
 		});
 		
+		//this.renderObjects.sort(this.comparator);
+		//this.renderObjects.forEach(obj => obj.render(context, obj.position.x, obj.position.y));
+		
 		this.chunks.forEach(chunk => {
-			if (chunk != undefined) chunk.renderObjects(context);
+			if (chunk != undefined) {
+				chunk.renderObjects(context);
+			};
 		});
 	}
 }

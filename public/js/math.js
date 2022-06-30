@@ -132,6 +132,31 @@ class BoundingBox {
 	}
 }
 
+class List {
+	constructor() {
+		this.values = [];
+		this.size = 0;
+	}
+	
+	add(element) {
+		if (Array.isArray(element)) element.forEach(e => this.values[this.size++] = e);
+		else this.values[this.size++] = element;
+	}
+
+	clear() {
+		this.size = 0;
+	}
+	
+	sort(comparator) {
+		if (this.values.length != this.size) this.values.length = this.size;
+		this.values.sort(comparator);
+	}
+	
+	forEach(lambda) {
+		this.values.forEach(lambda);
+	}
+}
+
 const MathHelper = {};
 
 MathHelper.neighbours8 = [

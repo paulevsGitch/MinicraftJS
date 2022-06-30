@@ -16,10 +16,11 @@ Minicraft.initGame = function() {
 	ctx.camera = {
 		position: new Vec2(),
 		movement: new Vec2(),
+		target: undefined,
 		zoomDelta: 0.0,
-		zoomNext: 2.0,
-		zoomPrev: 2.0,
-		zoom: 2.0
+		zoomNext: 4.0,
+		zoomPrev: 4.0,
+		zoom: 4.0
 	};
 	
 	ctx.fps = {
@@ -65,7 +66,12 @@ Minicraft.globalRender = function() {
 }
 
 Minicraft.drawFPS = function(ctx) {
-	Render.setDefaultFont(ctx.context);
+	Render.setFont(ctx.context);
+	
+	ctx.context.fillStyle = "black";
+	ctx.context.fillText("FPS: " + ctx.fps.avFPS, 20, 64 + 2);
+	ctx.context.fillText("Delta: " + ctx.fps.avDelta, 20, 88 + 2);
+	
 	ctx.context.fillStyle = "white";
 	ctx.context.fillText("FPS: " + ctx.fps.avFPS, 20, 64);
 	ctx.context.fillText("Delta: " + ctx.fps.avDelta, 20, 88);

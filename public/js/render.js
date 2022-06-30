@@ -41,12 +41,9 @@ Render.enableSmooth = function(context, smooth) {
 	context.imageSmoothingEnabled = smooth;
 }
 
-Render.setDefaultFont = function(context) {
-	context.font = "bold 24px serif";
-}
-
 Render.setFont = function(context, scale) {
-	context.font = "bold " + scale + "px serif";
+	if (scale === undefined) scale = 24;
+	context.font = scale + "px UpheavalPro";
 }
 
 Render.drawNineElements = function(context, image, x, y, width, height, corner) {

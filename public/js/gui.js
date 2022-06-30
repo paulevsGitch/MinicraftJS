@@ -141,7 +141,12 @@ class WorldScreen extends Screen {
 		this.world = new World(4);
 		WorldGenerator.generateWorld(this.world);
 		Minicraft.inWorld = true;
-		Minicraft.renderContext.camera.position.set(512, 512);
+		
+		let player = new PlayerEntity();
+		player.position.set(31, 31);
+		this.world.addEntity(player);
+		
+		Minicraft.renderContext.camera.target = player;
 	}
 	
 	render(renderContext) {
@@ -149,6 +154,9 @@ class WorldScreen extends Screen {
 		let width = renderContext.canvas.width;
 		let camera = renderContext.camera;
 		let ctx = renderContext.context;
+		
+		this.world.tick(renderContext.delta);
+		if (camera.target != undefined) camera.position.set(camera.target.position).multiply(16.0);
 		
 		Render.enableSmooth(ctx, false);
 		
@@ -169,21 +177,22 @@ class WorldScreen extends Screen {
 		}
 		
 		let camera = Minicraft.renderContext.camera;
-		camera.movement.set(0, 0);
-		if (Controls.isKeyHold("KeyW")) {
-			camera.movement.y -= 1;
+		if (camera.target === undefined) {
+			camera.movement.set(0, 0);
+			if (Controls.isKeyHold("KeyW")) {
+				camera.movement.y -= 1;
+			}
+			if (Controls.isKeyHold("KeyS")) {
+				camera.movement.y += 1;
+			}
+			if (Controls.isKeyHold("KeyA")) {
+				camera.movement.x -= 1;
+			}
+			if (Controls.isKeyHold("KeyD")) {
+				camera.movement.x += 1;
+			}
+			camera.position.add(camera.movement.normalize().multiply(100 * Minicraft.renderContext.delta));
 		}
-		if (Controls.isKeyHold("KeyS")) {
-			camera.movement.y += 1;
-		}
-		if (Controls.isKeyHold("KeyA")) {
-			camera.movement.x -= 1;
-		}
-		if (Controls.isKeyHold("KeyD")) {
-			camera.movement.x += 1;
-		}
-		
-		camera.position.add(camera.movement.normalize().multiply(100 * Minicraft.renderContext.delta));
 	}
 	
 	returnToParent() {
