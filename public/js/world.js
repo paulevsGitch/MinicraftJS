@@ -23,10 +23,10 @@ class Chunk {
 		this.tiles[this.getIndex(x, y)] = tile;
 	}
 	
-	renderEntities(context) {
-		this.entities.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
-		this.entities.forEach(entity => entity.render(context));
-	}
+	// renderEntities(context) {
+	// 	this.entities.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
+	// 	this.entities.forEach(entity => entity.render(context));
+	// }
 	
 	update(world) {
 		this.needUpdate = false;
@@ -91,6 +91,19 @@ class Chunk {
 	}
 }
 
+const OverworldDayColors = [
+	{r: 255, g: 255, b: 255},
+	{r: 255, g: 255, b: 255},
+	{r: 255, g: 255, b: 255},
+	{r: 255, g: 236, b: 207},
+	{r: 255, g: 145, b: 117},
+	{r: 14, g: 19, b: 30},
+	{r: 14, g: 19, b: 30},
+	{r: 14, g: 19, b: 30},
+	{r: 255, g: 145, b: 117},
+	{r: 255, g: 236, b: 207}
+];
+
 class World {
 	constructor(size) {
 		this.blockSize = size << 4;
@@ -99,6 +112,7 @@ class World {
 		this.chunks = [];
 		this.renderObjects = new List();
 		this.players = new List();
+		this.dayCycle = 300.0;
 	}
 	
 	getIndex(x, y) {
@@ -167,6 +181,19 @@ class World {
 				}
 			}
 		});
+	}
+	
+	setAmbientLight(context, time) {
+		let cycle = (time / this.dayCycle) % this.dayCycle;
+		let cycleDelta = cycle / this.dayCycle;
+		let index = Math.floor(cycleDelta * OverworldDayColors.length);
+		let colorA = OverworldDayColors[index];
+		let colorB = OverworldDayColors[(index + 1) % OverworldDayColors.length];
+		let delta = (cycleDelta * OverworldDayColors.length) % 1.0;
+		let r = Math.floor(MathHelper.lerp(colorA.r, colorB.r, delta));
+		let g = Math.floor(MathHelper.lerp(colorA.g, colorB.g, delta));
+		let b = Math.floor(MathHelper.lerp(colorA.b, colorB.b, delta));
+		context.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
 	}
 	
 	render(context) {

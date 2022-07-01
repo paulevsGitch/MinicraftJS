@@ -166,6 +166,12 @@ class WorldScreen extends Screen {
 		this.world.render(ctx);
 		
 		ctx.setTransform();
+		Render.multiplyBlending(ctx);
+		this.world.setAmbientLight(ctx, renderContext.time);
+		renderContext.context.fillRect(0, 0, width, height);
+		Render.defaultBlending(ctx);
+		
+		ctx.setTransform();
 		Render.enableSmooth(ctx, true);
 	}
 	
