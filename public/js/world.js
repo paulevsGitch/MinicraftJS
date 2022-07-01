@@ -1,8 +1,7 @@
 class Chunk {
 	constructor(x, y) {
 		this.tiles = [];
-		this.objects = [];
-		this.entities = [];
+		this.entities = new List();
 		this.position = new Vec2(x, y);
 		this.blockPosition = new Vec2(x << 4, y << 4);
 		this.renderPosition = new Vec2(x << 8, y << 8);
@@ -24,25 +23,8 @@ class Chunk {
 		this.tiles[this.getIndex(x, y)] = tile;
 	}
 	
-	getObject(x, y) {
-		return this.objects[this.getIndex(x, y)];
-	}
-	
-	setObject(x, y, obj) {
-		this.objects[this.getIndex(x, y)] = obj;
-		//let px = this.blockPosition.x | x;
-		//let py = this.blockPosition.y | y;
-		//obj.position = new Vec2(px, py);
-	}
-	
-	renderObjects(context) {
-		this.objects.forEach((obj, index) => {
-			let x = (index >> 4);
-			let y = (index & 15);
-		 	let px = this.blockPosition.x | x;
-			let py = this.blockPosition.y | y;
-			obj.render(context, px, py);
-		});
+	renderEntities(context) {
+		this.entities.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
 		this.entities.forEach(entity => entity.render(context));
 	}
 	
@@ -116,7 +98,7 @@ class World {
 		this.size = size;
 		this.chunks = [];
 		this.renderObjects = new List();
-		this.comparator = (obj1, obj2) => obj1.position.y - obj2.position.y;
+		this.players = new List();
 	}
 	
 	getIndex(x, y) {
@@ -158,50 +140,27 @@ class World {
 		chunk.needUpdate = true;
 	}
 	
-	getObject(x, y) {
-		let cx = x >> 4;
-		let cy = y >> 4;
-		if (cx < 0 || cy < 0 || cx >= this.size || cy >= this.size) {
-			return undefined;
-		}
-		let index = this.getIndex(cx, cy);
-		let chunk = this.chunks[index];
-		if (chunk === undefined) {
-			return undefined;
-		}
-		return chunk.getObject(x & 15, y & 15);
-	}
-	
-	setObject(x, y, obj) {
-		let cx = x >> 4;
-		let cy = y >> 4;
-		if (cx < 0 || cy < 0 || cx >= this.size || cy >= this.size) {
-			return;
-		}
-		let chunk = this.getOrCreateChunk(cx, cy);
-		chunk.setObject(x & 15, y & 15, obj);
-	}
-	
 	addEntity(entity) {
 		let x = Math.floor(entity.position.x) >> 4;
 		let y = Math.floor(entity.position.y) >> 4;
-		this.chunks[this.getIndex(x, y)].entities.push(entity);
+		this.chunks[this.getIndex(x, y)].entities.add(entity);
+		if (entity instanceof PlayerEntity) this.players.add(entity);
 	}
 	
 	tick(delta) {
 		this.chunks.forEach(chunk => {
 			if (chunk != undefined) {
-				let count = chunk.entities.length;
+				let count = chunk.entities.size;
 				for (let i = 0; i < count; i++) {
-					let entity = chunk.entities[i];
+					let entity = chunk.entities.values[i];
 					entity.tick(this, delta);
 					entity.position.x = MathHelper.clamp(entity.position.x, 0.0, this.entityLimit);
 					entity.position.y = MathHelper.clamp(entity.position.y, 0.0, this.entityLimit);
 					let x = Math.floor(entity.position.x) >> 4;
 					let y = Math.floor(entity.position.y) >> 4;
 					if (x != chunk.position.x || y != chunk.position.y) {
-						this.chunks[this.getIndex(x, y)].entities.push(entity);
-						chunk.entities.splice(i, 1);
+						this.chunks[this.getIndex(x, y)].entities.add(entity);
+						chunk.entities.remove(entity);
 						count--;
 						i--; 
 					}
@@ -211,23 +170,17 @@ class World {
 	}
 	
 	render(context) {
-		//this.renderObjects.clear();
-		
 		this.chunks.forEach(chunk => {
 			if (chunk != undefined) {
 				if (chunk.needUpdate) chunk.update(this);
 				context.drawImage(chunk.canvas, chunk.renderPosition.x, chunk.renderPosition.y);
-				//this.renderObjects.add(chunk.objects);
 			}
 		});
+		//this.chunks.forEach(chunk => { if (chunk != undefined) chunk.renderEntities(context); });
 		
-		//this.renderObjects.sort(this.comparator);
-		//this.renderObjects.forEach(obj => obj.render(context, obj.position.x, obj.position.y));
-		
-		this.chunks.forEach(chunk => {
-			if (chunk != undefined) {
-				chunk.renderObjects(context);
-			};
-		});
+		this.renderObjects.clear();
+		this.chunks.forEach(chunk => { if (chunk != undefined) this.renderObjects.add(chunk.entities); });
+		this.renderObjects.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
+		this.renderObjects.forEach(obj => obj.render(context));
 	}
 }

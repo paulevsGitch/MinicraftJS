@@ -1,49 +1,40 @@
 const Entities = {};
-Entities.mutableBox = new BoundingBox(new Vec2(), new Vec2(1.0));
+Entities.mutableBox = new BoundingBox(new Vec2(1.0));
 
 class Entity {
 	constructor() {
 		this.lastPosition = new Vec2();
 		this.position = new Vec2();
-		this.collideVelocity = new Vec2();
-		this.velocity = new Vec2();
-		this.speed = 5.0;
-		this.boundingBox = new BoundingBox(new Vec2(-0.5), new Vec2(1.0));
+		this.bbOffset = new Vec2(-0.5);
+		this.boundingBox = new BoundingBox(new Vec2(1.0));
 	}
 	
 	render(context) {}
 	
-	tick(delta) {
-		this.position.add(this.velocity.x * delta * this.speed, this.velocity.y * delta * this.speed);
-	}
+	tick(world, delta) {}
 	
 	canMove(tile) {
 		return tile != undefined && tile != Tiles.water;
 	}
 }
 
-class PlayerEntity extends Entity {
+class StaticEntity extends Entity {
+	constructor(x, y) {
+		super();
+		this.position.set(MathHelper.clampFloat(x, 16), MathHelper.clampFloat(y, 16));
+	}
+}
+
+class MovableEntity extends Entity {
 	constructor() {
 		super();
 		this.colliders = new List();
+		this.collideVelocity = new Vec2();
+		this.velocity = new Vec2();
+		this.speed = 5.0;
 	}
 	
 	tick(world, delta) {
-		this.velocity.set(0, 0);
-		if (Controls.isKeyHold("KeyW")) {
-			this.velocity.y -= 1;
-		}
-		if (Controls.isKeyHold("KeyS")) {
-			this.velocity.y += 1;
-		}
-		if (Controls.isKeyHold("KeyA")) {
-			this.velocity.x -= 1;
-		}
-		if (Controls.isKeyHold("KeyD")) {
-			this.velocity.x += 1;
-		}
-		this.velocity.normalize().multiply(delta * this.speed);
-		
 		let px = Math.floor(this.position.x);
 		let py = Math.floor(this.position.y);
 		
@@ -79,20 +70,22 @@ class PlayerEntity extends Entity {
 		
 		this.lastPosition.set(this.position);
 		this.position.add(this.velocity);
-		this.boundingBox.position.set(this.position).subtract(0.5);
+		this.boundingBox.position.set(this.position).add(this.bbOffset);
 	}
 	
 	render(context) {
-		context.fillStyle = "magenta";
-		context.fillRect(
+		context.strokeStyle = "magenta";
+		context.beginPath();
+		context.rect(
 			(this.boundingBox.position.x) * 16,
 			(this.boundingBox.position.y) * 16,
 			this.boundingBox.size.x * 16,
 			this.boundingBox.size.y * 16
 		);
+		context.stroke();
 		
+		// context.strokeStyle = "red";
 		// context.beginPath();
-		// context.strokeStyle = "#ff0000";
 		// this.colliders.forEach(box => {
 		// 	context.rect(
 		// 		(box.position.x) * 16,
@@ -102,5 +95,40 @@ class PlayerEntity extends Entity {
 		// 	);
 		// })
 		// context.stroke();
+	}
+}
+
+class PlayerEntity extends MovableEntity {
+	constructor() {
+		super();
+		this.colliders = new List();
+	}
+	
+	tick(world, delta) {
+		this.velocity.set(0, 0);
+		if (Controls.isKeyHold("KeyW")) {
+			this.velocity.y -= 1;
+		}
+		if (Controls.isKeyHold("KeyS")) {
+			this.velocity.y += 1;
+		}
+		if (Controls.isKeyHold("KeyA")) {
+			this.velocity.x -= 1;
+		}
+		if (Controls.isKeyHold("KeyD")) {
+			this.velocity.x += 1;
+		}
+		this.velocity.normalize().multiply(delta * this.speed);
+		super.tick(world, delta);
+	}
+	
+	render(context) {
+		context.fillStyle = "magenta";
+		context.fillRect(
+			(this.boundingBox.position.x) * 16,
+			(this.boundingBox.position.y) * 16 - 8,
+			this.boundingBox.size.x * 16,
+			this.boundingBox.size.y * 16
+		);
 	}
 }

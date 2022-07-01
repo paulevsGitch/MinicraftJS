@@ -42,7 +42,7 @@ WorldGenerator.generateWorld = function(world) {
 		for (let y = 0; y < world.size; y++) {
 			let chunk = world.getOrCreateChunk(x, y);
 			WorldGenerator.fillChunk(chunk, Tiles.water);
-			chunk.objects = [];
+			chunk.entities.clear();
 		}
 	}
 	
@@ -91,9 +91,16 @@ WorldGenerator.generateWorld = function(world) {
 		for (let y = 0; y < size; y ++) {
 			let tile = world.getTile(x, y);
 			if (tile == Tiles.grass && Math.random() < 0.3) {
-				world.setObject(x, y, GameObjects.tallGrass);
+				world.addEntity(new TallGrassPlant(x + MathHelper.randomRange(0.4, 0.6), y + MathHelper.randomRange(0.4, 0.6)));
 			}
 		}
+	}
+	
+	if (world.players.size > 0) {
+		let oldPlayers = [];
+		world.players.forEach(player => oldPlayers.push(player));
+		world.players.clear();
+		oldPlayers.forEach(player => world.addEntity(player));
 	}
 }
 

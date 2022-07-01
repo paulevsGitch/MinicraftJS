@@ -118,6 +118,10 @@ const BoundingBoxData = {
 
 class BoundingBox {
 	constructor(position, size) {
+		if (size == undefined) {
+			size = position;
+			position = new Vec2();
+		}
 		this.position = position;
 		this.size = size;
 	}
@@ -196,9 +200,26 @@ class List {
 	
 	add(element) {
 		if (Array.isArray(element)) element.forEach(e => this.values[this.size++] = e);
+		if (element instanceof List) element.values.forEach(e => this.values[this.size++] = e);
 		else this.values[this.size++] = element;
 	}
-
+	
+	remove(element) {
+		if (Number.isInteger(element)) {
+			this.values.splice(element, 1);
+			this.size--;
+		}
+		else {
+			for (let i = 0; i < this.size; i++) {
+				if (this.values[i] === element) {
+					this.values.splice(i, 1);
+					this.size--;
+					return;
+				}
+			}
+		}
+	}
+	
 	clear() {
 		this.size = 0;
 	}
@@ -243,4 +264,16 @@ MathHelper.clamp = function(x, min, max) {
 
 MathHelper.randomCentered = function() {
 	return Math.random() * 2.0 - 1.0;
+}
+
+MathHelper.randomRange = function(min, max) {
+	return min + Math.random() * (max - min);
+}
+
+MathHelper.clampFloat = function(x, delta) {
+	return Math.floor(x * delta) / delta;
+}
+
+MathHelper.randomInt = function(maxExclusive) {
+	return Math.floor(Math.random() * maxExclusive);
 }

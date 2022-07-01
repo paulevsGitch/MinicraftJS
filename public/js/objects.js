@@ -1,59 +1,44 @@
-class GameObject {
-	render(context, x, y) {}
+class GameObject extends StaticEntity {
+	constructor(x, y, image) {
+		super(x, y)
+		this.spriteOffset = new Vec2();
+		this.image = image;
+	}
 }
 
-class PlantObject extends GameObject {
-	constructor(image, wavign, offset, countX, countY, size) {
-		super();
-		this.image = image;
-		this.wavign = wavign;
-		this.offset = offset;
-		this.center = new Vec2();
-		this.countX = countX;
-		this.countY = countY;
+class PlantEntity extends GameObject {
+	constructor(x, y, image, imageX, imageY, size, waving) {
+		super(x, y, image);
+		this.imageX = imageX;
+		this.imageY = imageY;
 		this.size = size;
+		this.waving = waving;
+		this.spriteOffset.set(size * 0.5, size);
 	}
 	
-	render(context, x, y) {
-		let px = x << 4;
-		let py = y << 4;
-		let index = (y & 15) << 4 | (x & 15);
-		let table = GameObjects.renderingData.randomTable;
-		let ix = this.countX == undefined ? 0 : table[index].x % this.countX;
-		let iy = this.countY == undefined ? 0 : table[index].y % this.countY;
-		
-		if (this.offset) {
-			let offset = GameObjects.renderingData.offsets[index];
-			px += offset.x;
-			py += offset.y;
-		}
-		
+	render(context) {
 		let transform = context.getTransform();
-		if (this.wavign) {
+		context.transform(1.0, 0.0, 0.0, 1.0, this.position.x * 16.0 - this.spriteOffset.x, this.position.y * 16.0 - this.spriteOffset.y);
+		
+		if (this.waving) {
 			let time = Minicraft.renderContext.time;
-			let dist = Math.sin(time * 0.002 + x * 0.5 + y) * 0.1;
-			context.transform(1.0, 0.0, dist, 1.0, px - dist * 16, py + this.center.y);
-		}
-		else {
-			context.transform(1.0, 0.0, 0.0, 1.0, px, py);
+			let dist = Math.sin(time * 0.002 + this.position.x * 0.5 + this.position.y) * 0.1;
+			context.transform(1.0, 0.0, dist, 1.0, 0.0, this.spriteOffset.y);
+			context.transform(1.0, 0.0, 0.0, 1.0, 0.0, -this.spriteOffset.y);
 		}
 		
-		context.drawImage(this.image, ix * this.size, iy * this.size, this.size, this.size, 0, 0, this.size, this.size);
+		context.drawImage(this.image, this.imageX, this.imageY, this.size, this.size, 0.0, 0.0, this.size, this.size);
 		context.setTransform(transform);
 	}
 }
 
-const GameObjects = {};
-
-GameObjects.renderingData = {
-	offsets: [],
-	randomTable: []
+const GameObjectTextures = {
+	tallGrass: Images.load("img/sprites/tall_grass.png")
 };
 
-for (let i = 0; i < 256; i++) {
-	GameObjects.renderingData.offsets[i] = new Vec2(Math.round(MathHelper.randomCentered() * 4), Math.round(MathHelper.randomCentered() * 4));
-	GameObjects.renderingData.randomTable[i] = new Vec2(Math.floor(Math.random() * 256), Math.floor(Math.random() * 256));
+class TallGrassPlant extends PlantEntity {
+	constructor(x, y) {
+		super(x, y, GameObjectTextures.tallGrass, MathHelper.randomInt(2) << 4, MathHelper.randomInt(2) << 4, 16, true);
+		this.spriteOffset.y -= 2;
+	}
 }
-
-GameObjects.tallGrass = new PlantObject(Images.load("img/sprites/tall_grass.png"), true, true, 2, 2, 16);
-GameObjects.tallGrass.center.y = 0;
