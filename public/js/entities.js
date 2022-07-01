@@ -5,11 +5,35 @@ class Entity {
 	constructor() {
 		this.lastPosition = new Vec2();
 		this.position = new Vec2();
-		this.bbOffset = new Vec2(-0.5);
 		this.boundingBox = new BoundingBox(new Vec2(1.0));
+		this.collidable = false;
+		this.selected = false;
 	}
 	
 	render(context) {}
+	
+	renderSelected(context) {
+		context.globalCompositeOperation = "destination-out";
+		let px = this.position.x;
+		let py = this.position.y;
+		MathHelper.neighbours4.forEach(offset => {
+			this.position.set(px + offset.x * 0.0625, py + offset.y * 0.0625);
+			this.render(context);
+		});
+		
+		/*context.globalCompositeOperation = "darken";
+		context.fillStyle = "magenta";
+		context.fillRect(
+			this.position.x * 16 - 8,
+			this.position.y * 16 - 16,
+			16,
+			16
+		);*/
+		
+		Render.defaultBlending(context);
+		this.position.set(px, py);
+		this.render(context);
+	}
 	
 	tick(world, delta) {}
 	
@@ -28,6 +52,7 @@ class StaticEntity extends Entity {
 class MovableEntity extends Entity {
 	constructor() {
 		super();
+		this.bbOffset = new Vec2(-0.5);
 		this.colliders = new List();
 		this.collideVelocity = new Vec2();
 		this.velocity = new Vec2();
@@ -54,6 +79,13 @@ class MovableEntity extends Entity {
 				}
 			}
 		}
+		world.visibleEntities.forEach(entity => {
+			if (entity != this && entity.collidable && Math.abs(entity.position.x - this.position.x) < 2 && Math.abs(entity.position.y - this.position.y) < 2) {
+				if (this.boundingBox.collides(entity.boundingBox)) {
+					this.colliders.add(entity.boundingBox);
+				}
+			}
+		})
 		this.boundingBox.position.subtract(dx, dy);
 		
 		this.colliders.sort((box1, box2) => {
@@ -102,6 +134,8 @@ class PlayerEntity extends MovableEntity {
 	constructor() {
 		super();
 		this.colliders = new List();
+		this.bbOffset = new Vec2(-0.25);
+		this.boundingBox.size.set(0.5);
 	}
 	
 	tick(world, delta) {
@@ -125,10 +159,20 @@ class PlayerEntity extends MovableEntity {
 	render(context) {
 		context.fillStyle = "magenta";
 		context.fillRect(
+			this.position.x * 16 - 8,
+			this.position.y * 16 - 16,
+			16,
+			16
+		);
+		
+		context.strokeStyle = "yellow";
+		context.beginPath();
+		context.rect(
 			(this.boundingBox.position.x) * 16,
-			(this.boundingBox.position.y) * 16 - 8,
+			(this.boundingBox.position.y) * 16,
 			this.boundingBox.size.x * 16,
 			this.boundingBox.size.y * 16
 		);
+		context.stroke();
 	}
 }

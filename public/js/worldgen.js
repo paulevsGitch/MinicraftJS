@@ -90,7 +90,11 @@ WorldGenerator.generateWorld = function(world) {
 	for (let x = 0; x < size; x ++) {
 		for (let y = 0; y < size; y ++) {
 			let tile = world.getTile(x, y);
-			if (tile == Tiles.grass && Math.random() < 0.3) {
+			if (tile == Tiles.grass && Math.random() < 0.1) {
+				//world.addEntity(new SimpleTree(x + 0.5, y + 0.5));
+				world.addEntity(new SimpleTree(x + MathHelper.randomRange(0.4, 0.6), y + MathHelper.randomRange(0.4, 0.6)));
+			}
+			else if (tile == Tiles.grass && Math.random() < 0.3) {
 				world.addEntity(new TallGrassPlant(x + MathHelper.randomRange(0.4, 0.6), y + MathHelper.randomRange(0.4, 0.6)));
 			}
 		}

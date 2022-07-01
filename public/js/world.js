@@ -82,12 +82,12 @@ class Chunk {
 			}
 		}
 		
-		Render.setAlpha(ctx, 0.2);
+		/*Render.setAlpha(ctx, 0.2);
 		ctx.strokeStyle = "#ffff00";
 		ctx.beginPath();
 		ctx.rect(0.5, 0.5, 255, 255);
 		ctx.stroke();
-		Render.setAlpha(ctx, 1.0);
+		Render.setAlpha(ctx, 1.0);*/
 	}
 }
 
@@ -110,7 +110,7 @@ class World {
 		this.entityLimit = this.blockSize - 0.001;
 		this.size = size;
 		this.chunks = [];
-		this.renderObjects = new List();
+		this.visibleEntities = new List();
 		this.players = new List();
 		this.dayCycle = 300.0;
 	}
@@ -205,9 +205,15 @@ class World {
 		});
 		//this.chunks.forEach(chunk => { if (chunk != undefined) chunk.renderEntities(context); });
 		
-		this.renderObjects.clear();
-		this.chunks.forEach(chunk => { if (chunk != undefined) this.renderObjects.add(chunk.entities); });
-		this.renderObjects.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
-		this.renderObjects.forEach(obj => obj.render(context));
+		this.visibleEntities.clear();
+		this.chunks.forEach(chunk => { if (chunk != undefined) this.visibleEntities.add(chunk.entities); });
+		this.visibleEntities.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
+		this.visibleEntities.forEach(entity => {
+			if (entity.selected) {
+				entity.renderSelected(context);
+				entity.selected = false;
+			}
+			else entity.render(context);
+		});
 	}
 }

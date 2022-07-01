@@ -200,7 +200,7 @@ class List {
 	
 	add(element) {
 		if (Array.isArray(element)) element.forEach(e => this.values[this.size++] = e);
-		if (element instanceof List) element.values.forEach(e => this.values[this.size++] = e);
+		if (element instanceof List) element.forEach(e => this.values[this.size++] = e);
 		else this.values[this.size++] = element;
 	}
 	

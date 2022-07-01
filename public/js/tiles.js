@@ -64,54 +64,6 @@ class WaterTile extends ImageTile {
 	}
 }
 
-class WangTile extends ImageTile {
-	constructor(name, image) {
-		super(name, image);
-		this.renderOrder = 1;
-	}
-	
-	drawPart(context, x, y, partX, partY) {
-		context.drawImage(this.image, partX, partY, 16, 16, x, y, 16, 16);
-	}
-	
-	draw(world, context, x, y, worldX, worldY) {
-		//let tileUp = world.world.getTile(x, y - 1);
-		//let tileDown = world.world.getTile(x, y + 1);
-		//let tileRight = world.world.getTile(x + 1, y);
-		//let tileLeft = world.world.getTile(x + 1, y);
-		this.drawPart(context, x << 4, y << 4, 16, 16);
-		// MathHelper.neighbours8.forEach(offset => {
-		// 	let px = x + offset.x;
-		// 	let py = y + offset.y;
-		// 	let tile = world.getTile(px, py);
-		// 	if (tile != undefined && tile instanceof WangTile) {
-		// 		tile.drawPart(context, px << 4, py << 4, (offset.x + 1) << 4, (offset.y + 1) << 4);
-		// 	}
-		// });
-		
-		MathHelper.neighbours8.forEach(offset => {
-			let px = x + offset.x;
-			let py = y + offset.y;
-			let tile = world.getTile(px, py);
-			if (tile != this) {
-				this.drawPart(context, px << 4, py << 4, (offset.x + 1) << 4, (offset.y + 1) << 4);
-			}
-		});
-		
-		// for (let i = 0; i < 4; i++) {
-		// 	let offset1 = MathHelper.neighbours4[i];
-		// 	let offset2 = MathHelper.neighbours4[(i + 1) & 1];
-		// 	let px1 = x + offset1.x;
-		// 	let py1 = y + offset1.y;
-		// 	let px2 = px1 + offset2.x;
-		// 	let py2 = py1 + offset2.y;
-		// 	if (world.getTile(px2, py2) == this) {
-		// 		this.drawPart(context, px << 4, py << 4, (offset.x + 1) << 4, (offset.y + 1) << 4);
-		// 	}
-		// }
-	}
-}
-
 const Tiles = {
 	values: [],
 	globalSplatID: 1,
@@ -151,10 +103,13 @@ Tiles.registerOverlayRender(Tiles.stone, (context, x, y) => {
 Tiles.grass.smallGrass = Images.load("img/sprites/small_grass.png");
 Tiles.registerOverlayRender(Tiles.grass, (context, x, y) => {
 	if (Math.random() < 0.5) {
-		let px = Math.floor(Math.random() * 8) | (x << 4);
-		let py = Math.floor(Math.random() * 8) | (y << 4);
-		let ix = Math.floor(Math.random() * 2) << 3;
-		let iy = Math.floor(Math.random() * 2) << 3;
+		let px = MathHelper.randomInt(8) | (x << 4);
+		let py = MathHelper.randomInt(8) | (y << 4);
+		//let flowers = Math.random() < 0.2;
+		//let ix = (flowers ? MathHelper.randomInt(4) : MathHelper.randomInt(2)) << 3;
+		//let iy = (flowers ? MathHelper.randomInt(4) : MathHelper.randomInt(2)) << 3;
+		let ix = MathHelper.randomInt(2) << 3;
+		let iy = MathHelper.randomInt(2) << 3;
 		context.drawImage(Tiles.grass.smallGrass, ix, iy, 8, 8, px, py, 8, 8);
 	}
 })

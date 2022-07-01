@@ -13,6 +13,10 @@ Minicraft.initGame = function() {
 	ctx.center = new Vec2();
 	ctx.delta = 0.0;
 	
+	ctx.lightmap = {};
+	ctx.lightmap.canvas = document.createElement("canvas");
+	ctx.lightmap.context = ctx.lightmap.canvas.getContext("2d");
+	
 	ctx.camera = {
 		position: new Vec2(),
 		movement: new Vec2(),
@@ -46,6 +50,9 @@ Minicraft.onResize = function() {
 	canvas.height = window.innerHeight;
 	Minicraft.renderContext.center.set(canvas.width >> 1, canvas.height >> 1);
 	Minicraft.screen.onResize(Minicraft.renderContext.center, canvas.width, canvas.height);
+	canvas = Minicraft.renderContext.lightmap.canvas;
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
 }
 
 var but = GUI.makeDefaultButton("TEXT", null);
