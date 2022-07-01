@@ -152,9 +152,7 @@ class BoundingBox {
 				BoundingBoxData.enterTime.x = -1000.0;
 				BoundingBoxData.exitTime.x = 1000.0;
 			}
-			else {
-				return;
-			}
+			else return;
 		}
 		else {
 			enter = velocity.x > 0 ? box.position.x - (this.size.x + this.position.x) : this.position.x - (box.size.x + box.position.x);
@@ -164,13 +162,11 @@ class BoundingBox {
 		}
 
 		if (velocity.y == 0) {
-			if (this.position.y < (box.size.y + box.position.y) && box.position.y < (this.size.y + this.position.y)) {
+			if (this.position.y <  box.position.y + box.size.y && box.position.y < this.position.y + this.size.y) {
 				BoundingBoxData.enterTime.y = -1000.0;
 				BoundingBoxData.exitTime.y = 1000.0;
 			}
-			else {
-				return;
-			}
+			else return;
 		}
 		else {
 			enter = velocity.y > 0 ? box.position.y - (this.size.y + this.position.y) : this.position.y - (box.size.y + box.position.y);
@@ -182,18 +178,13 @@ class BoundingBox {
 		if (BoundingBoxData.enterTime.x > BoundingBoxData.exitTime.y || BoundingBoxData.enterTime.y > BoundingBoxData.exitTime.x) {
 			return;
 		}
-
+		
 		enter = Math.max(BoundingBoxData.enterTime.x, BoundingBoxData.enterTime.y);
-		//console.log(enter);
 
-		if (enter < -100 || enter > 100) return;
+		if (enter < 0 || enter > 1) return;
 
-		if (enter == BoundingBoxData.enterTime.x) {
-			velocity.x = velocity.x * enter;
-		}
-		else {
-			velocity.y = velocity.y * enter;
-		}
+		if (enter == BoundingBoxData.enterTime.x) velocity.x = velocity.x * enter;
+		else velocity.y = velocity.y * enter;
 	}
 }
 
@@ -218,7 +209,7 @@ class List {
 	}
 	
 	forEach(lambda) {
-		this.values.forEach(lambda);
+		for (let i = 0; i < this.size; i++) lambda(this.values[i]);
 	}
 }
 

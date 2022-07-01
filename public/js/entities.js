@@ -25,6 +25,7 @@ class Entity {
 class PlayerEntity extends Entity {
 	constructor() {
 		super();
+		this.colliders = new List();
 	}
 	
 	tick(world, delta) {
@@ -43,33 +44,38 @@ class PlayerEntity extends Entity {
 		}
 		this.velocity.normalize().multiply(delta * this.speed);
 		
-		// let x = Math.floor(this.position.x);
-		// let y = Math.floor(this.position.y);
-		// 
-		// if (!this.canMove(world.getTile(x, y))) {
-		// 	this.position.set(this.lastPosition);
-		// }
-		
 		let px = Math.floor(this.position.x);
 		let py = Math.floor(this.position.y);
 		
-		let x1 = this.velocity.x < 0 ? -1 : 0;
-		let x2 = this.velocity.x > 0 ?  1 : 0;
-		let y1 = this.velocity.y < 0 ? -1 : 0;
-		let y2 = this.velocity.y > 0 ?  1 : 0;
-		
-		for (let x = x1; x <= x2; x++) {
+		this.colliders.clear();
+		let dx = this.velocity.x;
+		let dy = this.velocity.y;
+		this.boundingBox.position.add(dx, dy);
+		for (let x = -1; x <= 1; x++) {
 			let wx = px + x;
-			for (let y = y1; y <= y2; y++) {
+			for (let y = -1; y <= 1; y++) {
 				let wy = py + y;
 				if (!this.canMove(world.getTile(wx, wy))) {
 					Entities.mutableBox.position.set(wx, wy);
-					if (this.boundingBox.collides(Entities.mutableBox)) this.boundingBox.sweptCollision(Entities.mutableBox, this.velocity);
+					if (this.boundingBox.collides(Entities.mutableBox)) {
+						this.colliders.add(structuredClone(Entities.mutableBox));
+					}
 				}
 			}
 		}
+		this.boundingBox.position.subtract(dx, dy);
 		
-		//console.log(this.velocity);
+		this.colliders.sort((box1, box2) => {
+			let x = box1.position.x + box1.size.x * 0.5 - this.position.x;
+			let y = box1.position.y + box1.size.y * 0.5 - this.position.y;
+			let d1 = x * x + y * y;
+			x = box2.position.x + box2.size.x * 0.5 - this.position.x;
+			y = box2.position.y + box2.size.y * 0.5 - this.position.y;
+			let d2 = x * x + y * y;
+			return Math.sign(d1 - d2);
+		});
+		
+		this.colliders.forEach(box => this.boundingBox.sweptCollision(box, this.velocity));
 		
 		this.lastPosition.set(this.position);
 		this.position.add(this.velocity);
@@ -77,16 +83,24 @@ class PlayerEntity extends Entity {
 	}
 	
 	render(context) {
-		//context.fillStyle = Entities.mutableBox.collides(this.boundingBox) ? "red" : "magenta";
 		context.fillStyle = "magenta";
-		//context.fillRect(this.position.x * 16 - 4, this.position.y * 16 - 4, 8, 8);
 		context.fillRect(
-			//(this.position.x + this.boundingBox.position.x) * 16,
-			//(this.position.y + this.boundingBox.position.y) * 16,
 			(this.boundingBox.position.x) * 16,
 			(this.boundingBox.position.y) * 16,
 			this.boundingBox.size.x * 16,
 			this.boundingBox.size.y * 16
 		);
+		
+		// context.beginPath();
+		// context.strokeStyle = "#ff0000";
+		// this.colliders.forEach(box => {
+		// 	context.rect(
+		// 		(box.position.x) * 16,
+		// 		(box.position.y) * 16,
+		// 		box.size.x * 16,
+		// 		box.size.y * 16
+		// 	);
+		// })
+		// context.stroke();
 	}
 }
