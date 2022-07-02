@@ -141,12 +141,19 @@ class MovableEntity extends Entity {
 	}
 }
 
+const EntityTextures = {
+	player: Images.load("img/sprites/player.png")
+};
+
 class PlayerEntity extends MovableEntity {
 	constructor() {
 		super();
 		this.colliders = new List();
 		this.bbOffset = new Vec2(-0.25);
 		this.boundingBox.size.set(0.5);
+		this.speed = 3.0;
+		this.spriteX = 0;
+		this.spriteY = 0;
 	}
 	
 	tick(world, delta) {
@@ -167,23 +174,25 @@ class PlayerEntity extends MovableEntity {
 	}
 	
 	render(context) {
-		context.fillStyle = "magenta";
-		context.fillRect(
-			this.position.x * 16 - 8,
-			this.position.y * 16 - 16,
-			16,
-			16
-		);
+		if (this.velocity.x != 0 || this.velocity.y != 0) {
+			let ax = Math.abs(this.velocity.x);
+			let ay = Math.abs(this.velocity.y);
+			let max = Math.max(ax, ay);
+			
+			if (max == ax) {
+				this.spriteX = this.velocity.x > 0 ? 32 : 48;
+				this.spriteY = Math.floor((this.position.x * 3) % 4.0) * 32;
+			}
+			else {
+				this.spriteX = this.velocity.y > 0 ? 0 : 16;
+				this.spriteY = Math.floor((this.position.y * 3) % 4.0) * 32;
+			}
+		}
+		else {
+			this.spriteY = 0;
+		}
 		
-		context.strokeStyle = "yellow";
-		context.beginPath();
-		context.rect(
-			(this.boundingBox.position.x) * 16,
-			(this.boundingBox.position.y) * 16,
-			this.boundingBox.size.x * 16,
-			this.boundingBox.size.y * 16
-		);
-		context.stroke();
+		context.drawImage(EntityTextures.player, this.spriteX, this.spriteY, 16, 32, this.position.x * 16 - 8, this.position.y * 16 - 32, 16, 32);
 	}
 	
 	onCollide(entity) {
