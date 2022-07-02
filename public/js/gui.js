@@ -173,6 +173,27 @@ class WorldScreen extends Screen {
 		let px = ((mouse.x - width * 0.5) / camera.zoom + camera.position.x) / 16;
 		let py = ((mouse.y - height * 0.5) / camera.zoom + camera.position.y) / 16;
 		
+		let screen = renderContext.screenArea;
+		screen.position.set(-width * 0.5, -height * 0.5).divide(camera.zoom).add(camera.position).divide(16);
+		screen.size.set(width, height).divide(camera.zoom * 16);
+		
+		Entities.mutableBox.size.set(4.0);
+		this.world.visibleEntities.forEach(entity => {
+			Entities.mutableBox.position.set(entity.position).subtract(2.0);
+			entity.visible = screen.collides(Entities.mutableBox);
+		});
+		Entities.mutableBox.size.set(1.0);
+		
+		ctx.strokeStyle = "white";
+		ctx.beginPath();
+		ctx.rect(
+			(screen.position.x) * 16 + 1,
+			(screen.position.y) * 16 + 1,
+			screen.size.x * 16 - 2,
+			screen.size.y * 16 - 2
+		);
+		ctx.stroke();
+		
 		this.selected = undefined;
 		this.world.visibleEntities.forEach(entity => {
 			if (entity.selectionBox != undefined && entity.selectionBox.isInside(px, py)) {

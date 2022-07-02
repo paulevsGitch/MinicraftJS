@@ -159,6 +159,7 @@ class World {
 		let y = Math.floor(entity.position.y) >> 4;
 		this.chunks[this.getIndex(x, y)].entities.add(entity);
 		if (entity instanceof PlayerEntity) this.players.add(entity);
+		this.visibleEntities.add(entity);
 	}
 	
 	tick(delta) {
@@ -169,6 +170,7 @@ class World {
 					let entity = chunk.entities.values[i];
 					entity.tick(this, delta);
 					if (!entity.alive) {
+						this.visibleEntities.remove(entity);
 						entity.onDeath(this);
 						chunk.entities.remove(i);
 						count--;
@@ -213,15 +215,17 @@ class World {
 		});
 		//this.chunks.forEach(chunk => { if (chunk != undefined) chunk.renderEntities(context); });
 		
-		this.visibleEntities.clear();
-		this.chunks.forEach(chunk => { if (chunk != undefined) this.visibleEntities.add(chunk.entities); });
+		/*this.visibleEntities.clear();
+		this.chunks.forEach(chunk => { if (chunk != undefined) this.visibleEntities.add(chunk.entities); });*/
 		this.visibleEntities.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
 		this.visibleEntities.forEach(entity => {
-			if (entity.selected) {
-				entity.renderSelected(context);
-				entity.selected = false;
+			if (entity.visible) {
+				if (entity.selected) {
+					entity.renderSelected(context);
+					entity.selected = false;
+				}
+				else entity.render(context);
 			}
-			else entity.render(context);
 		});
 	}
 }

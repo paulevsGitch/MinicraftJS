@@ -9,6 +9,7 @@ class Entity {
 		this.collidable = false;
 		this.selected = false;
 		this.alive = true;
+		this.visible = true;
 	}
 	
 	render(context) {}

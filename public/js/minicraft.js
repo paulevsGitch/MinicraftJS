@@ -17,6 +17,8 @@ Minicraft.initGame = function() {
 	ctx.lightmap.canvas = document.createElement("canvas");
 	ctx.lightmap.context = ctx.lightmap.canvas.getContext("2d");
 	
+	ctx.screenArea = new BoundingBox(new Vec2());
+	
 	ctx.camera = {
 		position: new Vec2(),
 		movement: new Vec2(),
