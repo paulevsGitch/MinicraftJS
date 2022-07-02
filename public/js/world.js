@@ -23,11 +23,6 @@ class Chunk {
 		this.tiles[this.getIndex(x, y)] = tile;
 	}
 	
-	// renderEntities(context) {
-	// 	this.entities.sort((obj1, obj2) => Math.sign(obj1.position.y - obj2.position.y));
-	// 	this.entities.forEach(entity => entity.render(context));
-	// }
-	
 	update(world) {
 		this.needUpdate = false;
 		let ctx = this.canvas.getContext("2d");
@@ -67,7 +62,7 @@ class Chunk {
 			if (tile != undefined) tile.draw(world, ctx, i, -1, px, this.blockPosition.y - 1);
 			
 			tile = world.getTile(px, this.blockPosition.y + 16);
-			if (tile != undefined)tile.draw(world, ctx, i, 16, px, this.blockPosition.y + 16);
+			if (tile != undefined) tile.draw(world, ctx, i, 16, px, this.blockPosition.y + 16);
 		}
 		
 		for (let i = 0; i < 256; i++) {

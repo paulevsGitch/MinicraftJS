@@ -37,6 +37,7 @@ WorldGenerator.generateWorld = function(world) {
 	let size = world.size << 4;
 	let scale = world.size >> 1;
 	let half = size >> 1;
+	world.visibleEntities.clear();
 	
 	for (let x = 0; x < world.size; x++) {
 		for (let y = 0; y < world.size; y++) {

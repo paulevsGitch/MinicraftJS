@@ -181,9 +181,9 @@ class WorldScreen extends Screen {
 		screen.position.set(-width * 0.5, -height * 0.5).divide(camera.zoom).add(camera.position).divide(16);
 		screen.size.set(width, height).divide(camera.zoom * 16);
 		
-		Entities.mutableBox.size.set(4.0);
+		Entities.mutableBox.size.set(8.0);
 		this.world.visibleEntities.forEach(entity => {
-			Entities.mutableBox.position.set(entity.position).subtract(2.0);
+			Entities.mutableBox.position.set(entity.position).subtract(4.0);
 			entity.visible = screen.collides(Entities.mutableBox);
 		});
 		Entities.mutableBox.size.set(1.0);
