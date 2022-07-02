@@ -154,21 +154,27 @@ class PlayerEntity extends MovableEntity {
 		this.speed = 3.0;
 		this.spriteX = 0;
 		this.spriteY = 0;
+		this.inventory = {
+			items: [],
+			selected: -1
+		};
 	}
 	
 	tick(world, delta) {
 		this.velocity.set(0, 0);
-		if (Controls.isKeyHold("KeyW")) {
-			this.velocity.y -= 1;
-		}
-		if (Controls.isKeyHold("KeyS")) {
-			this.velocity.y += 1;
-		}
-		if (Controls.isKeyHold("KeyA")) {
-			this.velocity.x -= 1;
-		}
-		if (Controls.isKeyHold("KeyD")) {
-			this.velocity.x += 1;
+		if (Minicraft.screen instanceof WorldScreen) {
+			if (Controls.isKeyHold("KeyW")) {
+				this.velocity.y -= 1;
+			}
+			if (Controls.isKeyHold("KeyS")) {
+				this.velocity.y += 1;
+			}
+			if (Controls.isKeyHold("KeyA")) {
+				this.velocity.x -= 1;
+			}
+			if (Controls.isKeyHold("KeyD")) {
+				this.velocity.x += 1;
+			}
 		}
 		super.tick(world, delta);
 	}
@@ -196,6 +202,18 @@ class PlayerEntity extends MovableEntity {
 	}
 	
 	onCollide(entity) {
-		if (entity instanceof ItemEntity && entity.canPick) entity.alive = false;
+		if (entity instanceof ItemEntity && entity.canPick) {
+			entity.alive = false;
+			let item = entity.item;
+			let itemStack = this.inventory.items[item.id];
+			if (itemStack === undefined) {
+				itemStack = {
+					item: item,
+					count: 0
+				};
+				this.inventory.items[item.id] = itemStack;
+			}
+			itemStack.count++;
+		}
 	}
 }

@@ -13,6 +13,11 @@ Render.printCentered = function(context, text, x, y) {
 	context.fillText(text, x - (metrics.width >> 1), y + (height >> 1));
 }
 
+Render.printRightBottom = function(context, text, x, y) {
+	let metrics = context.measureText(text);
+	context.fillText(text, x - metrics.width, y);
+}
+
 Render.defaultBlending = function(context) {
 	context.globalCompositeOperation = "source-over";
 }

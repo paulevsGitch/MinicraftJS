@@ -146,11 +146,11 @@ class WorldScreen extends Screen {
 		WorldGenerator.generateWorld(this.world);
 		Minicraft.inWorld = true;
 		
-		let player = new PlayerEntity();
-		player.position.set(31, 31);
-		this.world.addEntity(player);
+		this.player = new PlayerEntity();
+		this.player.position.set(31, 31);
+		this.world.addEntity(this.player);
 		
-		Minicraft.renderContext.camera.target = player;
+		Minicraft.renderContext.camera.target = this.player;
 		
 		this.light = Images.load("img/light/light_64.png");
 	}
@@ -180,6 +180,12 @@ class WorldScreen extends Screen {
 		let screen = renderContext.screenArea;
 		screen.position.set(-width * 0.5, -height * 0.5).divide(camera.zoom).add(camera.position).divide(16);
 		screen.size.set(width, height).divide(camera.zoom * 16);
+		
+		let inventory = this.player.inventory;
+		if (inventory.selected > -1) {
+			let stack = inventory.items[inventory.selected];
+			stack.item.renderOnCursor(ctx, px, py);
+		}
 		
 		Entities.mutableBox.size.set(8.0);
 		this.world.visibleEntities.forEach(entity => {
@@ -222,6 +228,10 @@ class WorldScreen extends Screen {
 			WorldGenerator.generateWorld(this.world);
 		}
 		
+		if (Controls.isKeyPressed("KeyE")) {
+			Minicraft.screen = new InventoryScreen(this, this.player);
+		}
+		
 		let camera = Minicraft.renderContext.camera;
 		if (camera.target === undefined) {
 			camera.movement.set(0, 0);
@@ -246,10 +256,103 @@ class WorldScreen extends Screen {
 		if (this.selected != undefined) {
 			this.selected.alive = false;
 		}
+		let inventory = this.player.inventory;
+		if (inventory.selected > -1) {
+			let stack = inventory.items[inventory.selected];
+			let renderContext = Minicraft.renderContext;
+			let height = renderContext.canvas.height;
+			let width = renderContext.canvas.width;
+			let camera = renderContext.camera;
+			let px = ((x - width * 0.5) / camera.zoom + camera.position.x) / 16;
+			let py = ((y - height * 0.5) / camera.zoom + camera.position.y) / 16;
+			stack.item.onUse(this.world, px, py, stack);
+			if (stack.count < 1) {
+				inventory.items.splice(inventory.selected, 1);
+				inventory.selected = -1;
+			}
+		}
 	}
 	
 	returnToParent() {
 		super.returnToParent();
 		Minicraft.inWorld = false;
+	}
+}
+
+class InventoryScreen extends Screen {
+	constructor(parent, player) {
+		super(parent);
+		this.player = player;
+		this.cache = [];
+	}
+	
+	render(renderContext) {
+		this.parent.render(renderContext);
+		
+		let height = renderContext.canvas.height;
+		let width = renderContext.canvas.width;
+		let ctx = renderContext.context;
+		
+		ctx.setTransform();
+		Render.enableSmooth(ctx, false);
+		
+		Render.setAlpha(ctx, 0.5);
+		ctx.fillStyle = "black";
+		ctx.fillRect(0, 0, width, height);
+		Render.setAlpha(ctx, 1.0);
+		
+		let minX = (width - 512) >> 1;
+		let minY = (height - 512) >> 1;
+		Render.drawNineElements(ctx, GUI.textures.button, minX, minY, 512, 512, 32);
+		
+		Render.setFont(ctx);
+		ctx.fillStyle = "white";
+		let inventory = this.player.inventory;
+		
+		let i = 0;
+		inventory.items.forEach(stack => {
+			let x = (i & 7) * 64 + minX + 32;
+			let y = (i >> 3) * 64 + minY + 32;
+			
+			if (stack.item.id === inventory.selected) {
+				ctx.strokeStyle = "white";
+				ctx.lineWidth = 4;
+				ctx.beginPath();
+				ctx.rect(x, y, 64, 64);
+				ctx.stroke();
+				ctx.lineWidth = 1;
+			}
+			
+			ctx.drawImage(stack.item.image, x, y, 64, 64);
+			if (stack.count > 1) Render.printRightBottom(ctx, stack.count, x + 60, y + 60);
+			this.cache[i] = stack.item.id;
+			i++;
+		});
+		
+		Render.enableSmooth(ctx, true);
+	}
+	
+	onClick(x, y) {
+		super.onClick(x, y);
+		let height = Minicraft.renderContext.canvas.height;
+		let width = Minicraft.renderContext.canvas.width;
+		let minX = ((width - 512) >> 1) + 32;
+		let minY = ((height - 512) >> 1) + 32;
+		let px = (x - minX) >> 6;
+		let py = (y - minY) >> 6;
+		
+		let inventory = this.player.inventory;
+		if (px < 0 || py < 0 || px > 7 || py > 7) {
+			inventory.selected = -1;
+			return;
+		}
+		
+		let index = py << 3 | px;
+		if (index >= inventory.items.length) {
+			inventory.selected = -1;
+			return;
+		}
+		
+		inventory.selected = this.cache[index];
 	}
 }
