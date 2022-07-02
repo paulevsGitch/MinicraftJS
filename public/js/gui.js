@@ -124,6 +124,9 @@ class MainMenuScreen extends Screen {
 		
 		this.optionsButton = GUI.makeDefaultButton("OPTIONS", function() { console.log("B"); });
 		this.addElement(this.optionsButton);
+		
+		this.sourcesButton = GUI.makeDefaultButton("SOURCES", function() { window.location.href = "https://github.com/paulevsGitch/MinicraftJS"; });
+		this.addElement(this.sourcesButton);
 	}
 	
 	onResize(center, width, height) {
@@ -131,7 +134,8 @@ class MainMenuScreen extends Screen {
 		this.logo.position.set(center.x - (this.logo.image.width << 2), (center.y >> 1) - (this.logo.image.height << 3));
 		this.border.size.set(width, height);
 		this.startButton.position.set(center.x - 256, center.y - 64 - 70);
-		this.optionsButton.position.set(this.startButton.position.x, center.y - 64 + 70);
+		this.optionsButton.position.set(this.startButton.position.x, this.startButton.position.y + 140);
+		this.sourcesButton.position.set(this.startButton.position.x, this.optionsButton.position.y + 140);
 	}
 }
 
@@ -183,16 +187,6 @@ class WorldScreen extends Screen {
 			entity.visible = screen.collides(Entities.mutableBox);
 		});
 		Entities.mutableBox.size.set(1.0);
-		
-		ctx.strokeStyle = "white";
-		ctx.beginPath();
-		ctx.rect(
-			(screen.position.x) * 16 + 1,
-			(screen.position.y) * 16 + 1,
-			screen.size.x * 16 - 2,
-			screen.size.y * 16 - 2
-		);
-		ctx.stroke();
 		
 		this.selected = undefined;
 		this.world.visibleEntities.forEach(entity => {
