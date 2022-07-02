@@ -168,15 +168,23 @@ class World {
 				for (let i = 0; i < count; i++) {
 					let entity = chunk.entities.values[i];
 					entity.tick(this, delta);
-					entity.position.x = MathHelper.clamp(entity.position.x, 0.0, this.entityLimit);
-					entity.position.y = MathHelper.clamp(entity.position.y, 0.0, this.entityLimit);
-					let x = Math.floor(entity.position.x) >> 4;
-					let y = Math.floor(entity.position.y) >> 4;
-					if (x != chunk.position.x || y != chunk.position.y) {
-						this.chunks[this.getIndex(x, y)].entities.add(entity);
-						chunk.entities.remove(entity);
+					if (!entity.alive) {
+						entity.onDeath(this);
+						chunk.entities.remove(i);
 						count--;
-						i--; 
+						i--;
+					}
+					else {
+						entity.position.x = MathHelper.clamp(entity.position.x, 0.0, this.entityLimit);
+						entity.position.y = MathHelper.clamp(entity.position.y, 0.0, this.entityLimit);
+						let x = Math.floor(entity.position.x) >> 4;
+						let y = Math.floor(entity.position.y) >> 4;
+						if (x != chunk.position.x || y != chunk.position.y) {
+							this.chunks[this.getIndex(x, y)].entities.add(entity);
+							chunk.entities.remove(i);
+							count--;
+							i--;
+						}
 					}
 				}
 			}

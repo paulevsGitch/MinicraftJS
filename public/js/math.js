@@ -230,7 +230,10 @@ class List {
 	}
 	
 	forEach(lambda) {
-		for (let i = 0; i < this.size; i++) lambda(this.values[i]);
+		for (let i = 0; i < this.size; i++) {
+			let result = lambda(this.values[i]);
+			if (result === true) return;
+		};
 	}
 }
 

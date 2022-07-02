@@ -173,9 +173,12 @@ class WorldScreen extends Screen {
 		let px = ((mouse.x - width * 0.5) / camera.zoom + camera.position.x) / 16;
 		let py = ((mouse.y - height * 0.5) / camera.zoom + camera.position.y) / 16;
 		
+		this.selected = undefined;
 		this.world.visibleEntities.forEach(entity => {
 			if (entity.selectionBox != undefined && entity.selectionBox.isInside(px, py)) {
 				entity.selected = true;
+				this.selected = entity;
+				return true;
 			}
 		});
 		
@@ -220,6 +223,13 @@ class WorldScreen extends Screen {
 				camera.movement.x += 1;
 			}
 			camera.position.add(camera.movement.normalize().multiply(100 * Minicraft.renderContext.delta));
+		}
+	}
+	
+	onClick(x, y) {
+		super.onClick(x, y);
+		if (this.selected != undefined) {
+			this.selected.alive = false;
 		}
 	}
 	

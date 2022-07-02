@@ -8,6 +8,7 @@ class Entity {
 		this.boundingBox = new BoundingBox(new Vec2(1.0));
 		this.collidable = false;
 		this.selected = false;
+		this.alive = true;
 	}
 	
 	render(context) {}
@@ -40,6 +41,10 @@ class Entity {
 	canMove(tile) {
 		return tile != undefined && tile != Tiles.water;
 	}
+	
+	onDeath(world) {}
+	
+	onCollide(entity) {}
 }
 
 class StaticEntity extends Entity {
@@ -60,6 +65,9 @@ class MovableEntity extends Entity {
 	}
 	
 	tick(world, delta) {
+		this.boundingBox.position.set(this.position).add(this.bbOffset);
+		this.velocity.normalize().multiply(delta * this.speed);
+		
 		let px = Math.floor(this.position.x);
 		let py = Math.floor(this.position.y);
 		
@@ -67,6 +75,7 @@ class MovableEntity extends Entity {
 		let dx = this.velocity.x;
 		let dy = this.velocity.y;
 		this.boundingBox.position.add(dx, dy);
+		
 		for (let x = -1; x <= 1; x++) {
 			let wx = px + x;
 			for (let y = -1; y <= 1; y++) {
@@ -80,9 +89,10 @@ class MovableEntity extends Entity {
 			}
 		}
 		world.visibleEntities.forEach(entity => {
-			if (entity != this && entity.collidable && Math.abs(entity.position.x - this.position.x) < 2 && Math.abs(entity.position.y - this.position.y) < 2) {
+			if (entity != this && Math.abs(entity.position.x - this.position.x) < 2 && Math.abs(entity.position.y - this.position.y) < 2) {
 				if (this.boundingBox.collides(entity.boundingBox)) {
-					this.colliders.add(entity.boundingBox);
+					if (entity.collidable) this.colliders.add(entity.boundingBox);
+					entity.onCollide(this);
 				}
 			}
 		})
@@ -152,7 +162,6 @@ class PlayerEntity extends MovableEntity {
 		if (Controls.isKeyHold("KeyD")) {
 			this.velocity.x += 1;
 		}
-		this.velocity.normalize().multiply(delta * this.speed);
 		super.tick(world, delta);
 	}
 	
@@ -174,5 +183,9 @@ class PlayerEntity extends MovableEntity {
 			this.boundingBox.size.y * 16
 		);
 		context.stroke();
+	}
+	
+	onCollide(entity) {
+		if (entity instanceof ItemEntity && entity.canPick) entity.alive = false;
 	}
 }

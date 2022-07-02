@@ -63,6 +63,22 @@ class TreePlant extends PlantEntity {
 		this.imageX = Math.floor(this.age * this.stages) * this.size;
 		super.render(context);
 	}
+	
+	onDeath(world) {
+		let count = Math.ceil(this.age * 2.5);
+		for (let i = 0; i < count; i++) {
+			let entity = new ItemEntity(Items.treeSapling);
+			entity.drop(world, this.position);
+		}
+		
+		if (this.age > 0.5) {
+			count = Math.ceil(this.age * 3) + MathHelper.randomInt(1);
+			for (let i = 0; i < count; i++) {
+				let entity = new ItemEntity(Items.treeLog);
+				entity.drop(world, this.position);
+			}
+		}
+	}
 }
 
 class SimpleTree extends TreePlant {
