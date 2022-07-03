@@ -8,10 +8,13 @@ class Item {
 		context.drawImage(this.image, x, y);
 	}
 	
-	onUse(world, x, y, stack) {}
+	onUse(world, x, y, stack) {
+		new ItemEntity(this).drop(world, new Vec2(x, y));
+		stack.count--;
+	}
 	
-	renderOnCursor(context, x, y) {
-		this.render(context, x * 16, y * 16);
+	renderOnCursor(world, context, x, y) {
+		this.render(context, x * 16 - 8, y * 16 - 8);
 	}
 }
 
@@ -57,23 +60,28 @@ class ItemEntity extends MovableEntity {
 }
 
 class PlacerItem extends Item {
-	constructor(item, entityConstructor) {
+	constructor(item, entityConstructor, placeConditions) {
 		super(item);
 		this.entityConstructor = entityConstructor;
 		this.entityInstance = entityConstructor(0, 0);
+		this.placeConditions = placeConditions === undefined ? tile => true : placeConditions;
 	}
 	
 	onUse(world, x, y, stack) {
-		this.entityInstance.position.set(x, y);
-		world.addEntity(this.entityConstructor(x, y));
-		stack.count--;
+		if (this.canPlace(world.getTile(Math.floor(x), Math.floor(y)))) {
+			this.entityInstance.position.set(x, y);
+			world.addEntity(this.entityConstructor(x, y));
+			stack.count--;
+		}
 	}
 	
-	renderOnCursor(context, x, y) {
-		Render.setAlpha(context, 0.5);
-		this.entityInstance.position.set(x, y);
-		this.entityInstance.render(context);
-		Render.setAlpha(context, 1.0);
+	renderOnCursor(world, context, x, y) {
+		if (this.canPlace(world.getTile(Math.floor(x), Math.floor(y)))) {
+			Render.setAlpha(context, 0.5);
+			this.entityInstance.position.set(x, y);
+			this.entityInstance.render(context);
+			Render.setAlpha(context, 1.0);
+		}
 	}
 	
 	drop(world, position) {
@@ -82,6 +90,20 @@ class PlacerItem extends Item {
 		this.position.set(position);
 		world.addEntity(this);
 	}
+	
+	canPlace(tile) {
+		return this.placeConditions(tile);
+	}
+}
+
+class ToolItem extends Item {
+	constructor(item) {
+		super(item);
+	}
+	
+	onUse(world, x, y, stack) {}
+	
+	renderOnCursor(world, context, x, y) {}
 }
 
 const Items = {
@@ -103,4 +125,5 @@ Items.treeSapling = Items.registerItem(new PlacerItem(Images.load("img/items/tre
 	let tree = new SimpleTree(x, y);
 	tree.age = 0.0;
 	return tree;
-}));
+}, tile => tile === Tiles.grass));
+Items.woodenAxe = Items.registerItem(new ToolItem(Images.load("img/items/wooden_axe.png")));

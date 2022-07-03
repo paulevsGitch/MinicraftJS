@@ -13,6 +13,7 @@ class PlantEntity extends GameObject {
 		this.imageY = imageY;
 		this.size = size;
 		this.waving = waving;
+		this.wavingSpeed = 0.002;
 		if (size != -1) this.spriteOffset.set(size * 0.5, size);
 	}
 	
@@ -22,7 +23,7 @@ class PlantEntity extends GameObject {
 		
 		if (this.waving > 0) {
 			let time = Minicraft.renderContext.time;
-			let dist = Math.sin(time * 0.002 + this.position.x * 0.5 + this.position.y) * this.waving;
+			let dist = Math.sin(time * this.wavingSpeed + this.position.x * 0.5 + this.position.y) * this.waving;
 			context.transform(1.0, 0.0, dist, 1.0, 0.0, this.spriteOffset.y);
 			context.transform(1.0, 0.0, 0.0, 1.0, 0.0, -this.spriteOffset.y);
 		}
@@ -57,6 +58,9 @@ class TreePlant extends PlantEntity {
 		this.growSpeed = growSpeed;
 		this.selectionBox = new BoundingBox(new Vec2(0.8, 1.6));
 		this.selectionBox.position.set(x, y).subtract(0.4, 1.4);
+		this.damage = 0.0;
+		this.oldDamage = 0.0;
+		this.animationProgress = 0.0;
 	}
 	
 	render(context) {
@@ -79,6 +83,32 @@ class TreePlant extends PlantEntity {
 			}
 		}
 	}
+	
+	onItemUse(stack) {
+		if (stack.item == Items.woodenAxe) {
+			this.damage += 0.34;
+			if (this.damage > 1.0) this.alive = false;
+		}
+	}
+	
+	tick(world, delta) {
+		super.tick(world, delta);
+		if (this.oldDamage != this.damage) {
+			if (this.animationProgress == 0.0) {
+				this.oldWaving = this.waving;
+				this.oldWavingSpeed = this.wavingSpeed;
+			}
+			this.animationProgress += MathHelper.clamp(delta * 3, 0.0, 1.0);
+			this.waving = this.oldWaving + Math.pow(Math.sin(this.animationProgress * Math.PI), 0.5) * 0.05;
+			this.wavingSpeed = 0.02;
+			if (this.animationProgress >= 1.0) {
+				this.oldDamage = this.damage;
+				this.animationProgress = 0.0;
+				this.waving = this.oldWaving || 0.02;
+				this.wavingSpeed = this.oldWavingSpeed || 0.002;
+			};
+		}
+	}
 }
 
 class SimpleTree extends TreePlant {
@@ -87,6 +117,7 @@ class SimpleTree extends TreePlant {
 	}
 	
 	tick(world, delta) {
+		super.tick(world, delta);
 		if (this.age < 0.999) {
 			this.age = this.age + delta * this.growSpeed;
 			if (this.age > 0.999) this.age = 0.999;

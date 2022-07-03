@@ -149,6 +149,7 @@ class WorldScreen extends Screen {
 		this.player = new PlayerEntity();
 		this.player.position.set(31, 31);
 		this.world.addEntity(this.player);
+		this.player.addItem(Items.woodenAxe);
 		
 		Minicraft.renderContext.camera.target = this.player;
 		
@@ -184,7 +185,9 @@ class WorldScreen extends Screen {
 		let inventory = this.player.inventory;
 		if (inventory.selected > -1) {
 			let stack = inventory.items[inventory.selected];
-			stack.item.renderOnCursor(ctx, px, py);
+			let x = MathHelper.clampFloat(px, 16);
+			let y = MathHelper.clampFloat(py, 16);
+			stack.item.renderOnCursor(this.world, ctx, x, y);
 		}
 		
 		Entities.mutableBox.size.set(8.0);
@@ -253,23 +256,30 @@ class WorldScreen extends Screen {
 	
 	onClick(x, y) {
 		super.onClick(x, y);
-		if (this.selected != undefined) {
-			this.selected.alive = false;
-		}
+		
 		let inventory = this.player.inventory;
-		if (inventory.selected > -1) {
-			let stack = inventory.items[inventory.selected];
+		let stack = inventory.items[inventory.selected];
+		
+		if (stack != undefined) {
 			let renderContext = Minicraft.renderContext;
 			let height = renderContext.canvas.height;
 			let width = renderContext.canvas.width;
 			let camera = renderContext.camera;
 			let px = ((x - width * 0.5) / camera.zoom + camera.position.x) / 16;
 			let py = ((y - height * 0.5) / camera.zoom + camera.position.y) / 16;
+			px = MathHelper.clampFloat(px, 16);
+			py = MathHelper.clampFloat(py, 16);
 			stack.item.onUse(this.world, px, py, stack);
 			if (stack.count < 1) {
-				inventory.items.splice(inventory.selected, 1);
+				//inventory.items.splice(inventory.selected, 1);
+				inventory.items[inventory.selected] = undefined;
 				inventory.selected = -1;
 			}
+		}
+		
+		if (this.selected != undefined) {
+			this.selected.onItemUse(stack);
+			//this.selected.alive = false;
 		}
 	}
 	
@@ -311,6 +321,8 @@ class InventoryScreen extends Screen {
 		
 		let i = 0;
 		inventory.items.forEach(stack => {
+			if (stack === undefined) return;
+			
 			let x = (i & 7) * 64 + minX + 32;
 			let y = (i >> 3) * 64 + minY + 32;
 			

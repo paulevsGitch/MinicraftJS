@@ -46,6 +46,8 @@ class Entity {
 	onDeath(world) {}
 	
 	onCollide(entity) {}
+	
+	onItemUse(stack) {}
 }
 
 class StaticEntity extends Entity {
@@ -201,19 +203,22 @@ class PlayerEntity extends MovableEntity {
 		context.drawImage(EntityTextures.player, this.spriteX, this.spriteY, 16, 32, this.position.x * 16 - 8, this.position.y * 16 - 32, 16, 32);
 	}
 	
+	addItem(item) {
+		let itemStack = this.inventory.items[item.id];
+		if (itemStack === undefined) {
+			itemStack = {
+				item: item,
+				count: 0
+			};
+			this.inventory.items[item.id] = itemStack;
+		}
+		itemStack.count++;
+	}
+	
 	onCollide(entity) {
 		if (entity instanceof ItemEntity && entity.canPick) {
 			entity.alive = false;
-			let item = entity.item;
-			let itemStack = this.inventory.items[item.id];
-			if (itemStack === undefined) {
-				itemStack = {
-					item: item,
-					count: 0
-				};
-				this.inventory.items[item.id] = itemStack;
-			}
-			itemStack.count++;
+			this.addItem(entity.item);
 		}
 	}
 }
